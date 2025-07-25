@@ -1,43 +1,41 @@
 
 # 📚 **Library Management System**
 
-## 🔍 **Overview**
+## 🔍 **Project Snapshot**
 
 **Title**: Library Management System
-**Skill Level**: Intermediate
+**Complexity**: Intermediate Level
 **Database Name**: `library_db`
 
 ---
 
-## 🎯 **Goals**
+## 🎯 **Goals of the Project**
 
-1. **Build the Library Database**: Create and populate tables for branches, staff, members, books, issued books, and returned books.
-2. **CRUD Operations**: Add, view, modify, and remove records efficiently.
-3. **Use CTAS (Create Table As Select)**: Generate new tables from existing query results.
-4. **Advanced SQL Queries**: Write complex queries for meaningful insights.
-
----
-
-## 🗂 **System Structure**
-
-* **Database Setup**: Database named `library_db`.
-* **Tables Created**:
-
-  * `branch` 🏢
-  * `employees` 👩‍💼
-  * `members` 👤
-  * `books` 📕
-  * `issued_status` 📤
-  * `return_status` 📥
+1. **Build the Library Database**: Design and implement a database containing branches, employees, members, books, and transaction records for book issuance and returns.
+2. **Perform CRUD Operations**: Insert, update, delete, and retrieve records from the tables.
+3. **CTAS (Create Table As Select)**: Generate new tables from existing datasets using queries.
+4. **Write Advanced SQL Queries**: Execute analytical and complex queries for insights and reports.
 
 ---
 
-### ✅ **Database & Tables**
+## 🏗 **System Blueprint**
+
+* **Database Setup**: Create a database named `library_db`.
+* **Tables Included**:
+
+  * Branch Information
+  * Employee Details
+  * Member Records
+  * Books Inventory
+  * Issue & Return Tracking
+
+### ✅ **Database Schema**
 
 ```sql
 CREATE DATABASE library_db;
 
--- Branch Table
+-- Branch Details
+DROP TABLE IF EXISTS branch;
 CREATE TABLE branch (
     branch_id VARCHAR(10) PRIMARY KEY,
     manager_id VARCHAR(10),
@@ -45,7 +43,8 @@ CREATE TABLE branch (
     contact_no VARCHAR(15)
 );
 
--- Employees Table
+-- Employee Table
+DROP TABLE IF EXISTS employees;
 CREATE TABLE employees (
     emp_id VARCHAR(10) PRIMARY KEY,
     emp_name VARCHAR(30),
@@ -55,7 +54,8 @@ CREATE TABLE employees (
     FOREIGN KEY (branch_id) REFERENCES branch(branch_id)
 );
 
--- Members Table
+-- Member Table
+DROP TABLE IF EXISTS members;
 CREATE TABLE members (
     member_id VARCHAR(10) PRIMARY KEY,
     member_name VARCHAR(30),
@@ -64,6 +64,7 @@ CREATE TABLE members (
 );
 
 -- Books Table
+DROP TABLE IF EXISTS books;
 CREATE TABLE books (
     isbn VARCHAR(50) PRIMARY KEY,
     book_title VARCHAR(80),
@@ -74,7 +75,8 @@ CREATE TABLE books (
     publisher VARCHAR(30)
 );
 
--- Issued Books Table
+-- Issued Status
+DROP TABLE IF EXISTS issued_status;
 CREATE TABLE issued_status (
     issued_id VARCHAR(10) PRIMARY KEY,
     issued_member_id VARCHAR(30),
@@ -87,7 +89,8 @@ CREATE TABLE issued_status (
     FOREIGN KEY (issued_book_isbn) REFERENCES books(isbn)
 );
 
--- Returned Books Table
+-- Return Status
+DROP TABLE IF EXISTS return_status;
 CREATE TABLE return_status (
     return_id VARCHAR(10) PRIMARY KEY,
     issued_id VARCHAR(30),
@@ -100,16 +103,17 @@ CREATE TABLE return_status (
 
 ---
 
-## 🛠 **CRUD Operations**
+## 🛠 **Core Functionalities (CRUD)**
 
-* **Insert Example (Add a Book)**:
+### **📌 Add a New Book**
 
 ```sql
 INSERT INTO books(isbn, book_title, category, rental_price, status, author, publisher)
-VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
+VALUES ('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.');
+SELECT * FROM books;
 ```
 
-* **Update Example (Change Member Address)**:
+### **📌 Update Member Address**
 
 ```sql
 UPDATE members
@@ -117,34 +121,32 @@ SET member_address = '125 Oak St'
 WHERE member_id = 'C103';
 ```
 
-* **Delete Example (Remove Issued Record)**:
+### **📌 Delete Issued Record**
 
 ```sql
 DELETE FROM issued_status WHERE issued_id = 'IS121';
 ```
 
-* **Retrieve Example (Books Issued by Employee E101)**:
+### **📌 Find All Books Issued by Employee E101**
 
 ```sql
 SELECT * FROM issued_status WHERE issued_emp_id = 'E101';
 ```
 
----
-
-## 🧠 **Key Tasks & Queries**
-
-### 🔍 Query Highlights:
-
-1. **Members Issuing More Than One Book**
+### **📌 Members Who Issued More Than 1 Book**
 
 ```sql
-SELECT issued_emp_id, COUNT(*) 
-FROM issued_status 
-GROUP BY 1 
+SELECT issued_emp_id, COUNT(*)
+FROM issued_status
+GROUP BY 1
 HAVING COUNT(*) > 1;
 ```
 
-2. **Create Summary Table (Books & Issue Count)**
+---
+
+## 🔄 **CTAS Examples**
+
+**Create a Summary Table for Book Issue Count**
 
 ```sql
 CREATE TABLE book_issued_cnt AS
@@ -154,42 +156,81 @@ JOIN books b ON ist.issued_book_isbn = b.isbn
 GROUP BY b.isbn, b.book_title;
 ```
 
-3. **Top Categories Revenue**
+---
+
+## 📊 **Analytical Queries**
+
+✔ **Books in ‘Classic’ Category**
+
+```sql
+SELECT * FROM books WHERE category = 'Classic';
+```
+
+✔ **Total Rental Revenue by Category**
 
 ```sql
 SELECT b.category, SUM(b.rental_price), COUNT(*)
 FROM issued_status ist
 JOIN books b ON b.isbn = ist.issued_book_isbn
-GROUP BY b.category;
+GROUP BY 1;
 ```
 
-4. **Overdue Books (30 Days)**
+✔ **Recent Registrations (Last 180 Days)**
 
 ```sql
-SELECT ist.issued_member_id, m.member_name, bk.book_title,
-CURRENT_DATE - ist.issued_date AS overdue_days
-FROM issued_status ist
-JOIN members m ON m.member_id = ist.issued_member_id
-JOIN books bk ON bk.isbn = ist.issued_book_isbn
-WHERE CURRENT_DATE - ist.issued_date > 30;
+SELECT * FROM members WHERE reg_date >= CURRENT_DATE - INTERVAL '180 days';
+```
+
+✔ **Employee & Manager with Branch Details**
+
+```sql
+SELECT e1.emp_id, e1.emp_name, e1.position, e1.salary, b.*, e2.emp_name AS manager
+FROM employees e1
+JOIN branch b ON e1.branch_id = b.branch_id
+JOIN employees e2 ON e2.emp_id = b.manager_id;
 ```
 
 ---
 
-## 📑 **Advanced Features**
+## 🔐 **Stored Procedures**
 
-* **Stored Procedures**:
+### **Procedure for Book Return and Status Update**
 
-  * `add_return_records` – Automatically updates return details and book status.
-  * `issue_book` – Issues book if available, otherwise displays an error.
-* **Reports**:
-
-  * Branch performance, active members, top-performing employees.
+```sql
+CREATE OR REPLACE PROCEDURE add_return_records(p_return_id VARCHAR(10), p_issued_id VARCHAR(10), p_book_quality VARCHAR(10))
+LANGUAGE plpgsql AS $$
+DECLARE v_isbn VARCHAR(50); v_book_name VARCHAR(80);
+BEGIN
+    INSERT INTO return_status(return_id, issued_id, return_date, book_quality)
+    VALUES (p_return_id, p_issued_id, CURRENT_DATE, p_book_quality);
+    SELECT issued_book_isbn, issued_book_name INTO v_isbn, v_book_name
+    FROM issued_status WHERE issued_id = p_issued_id;
+    UPDATE books SET status = 'yes' WHERE isbn = v_isbn;
+    RAISE NOTICE 'Book Returned Successfully: %', v_book_name;
+END;
+$$;
+```
 
 ---
 
-## 🏆 **Outcome**
+## 📑 **Reports and Insights**
 
-This project showcases **database design**, **data handling**, and **complex SQL queries** to manage library operations effectively. It demonstrates **real-world database management skills** through **reporting**, **automation**, and **analytics**.
+* **Branch Performance Report** (Issued Books, Returns, Total Revenue)
+* **Employee Productivity Analysis**
+* **Overdue Book Tracking with Fine Calculation**
+* **Top 3 Employees by Issue Count**
+* **Active Members in Last 2 Months**
+
+---
+
+### ✅ **Outcome**
+
+This project demonstrates **real-world SQL applications**, including:
+
+* **Database Design**
+* **Transaction Handling**
+* **Data Aggregation**
+* **Advanced Query Writing**
+* **Stored Procedures for Automation**
 
 
