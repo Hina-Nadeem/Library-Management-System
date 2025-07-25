@@ -190,4 +190,6 @@ WHERE CURRENT_DATE - ist.issued_date > 30;
 
 ## 🏆 **Outcome**
 
-This project showcases **database design**, **data handling**, and **complex SQL queries** to manage library operations effectively. It demonstrates **real-world database management skills** through **reporting**, **automation**, and **analytics**
+This project showcases **database design**, **data handling**, and **complex SQL queries** to manage library operations effectively. It demonstrates **real-world database management skills** through **reporting**, **automation**, and **analytics**.
+
+
